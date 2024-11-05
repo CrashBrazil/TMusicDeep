@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { View, StyleSheet, ScrollView, Button, Text} from "react-native";
+import { View, StyleSheet, ScrollView, Button, Text, Linking, Alert} from "react-native";
 import * as MediaLibrary from 'expo-media-library';
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -8,14 +8,30 @@ export default function LayoutHome(){
     const [permissionResponse, requestPermission] = MediaLibrary.usePermissions();
 
     async function getAudio() {
-        if(permissionResponse.status !== 'granted'){
-            await requestPermission();
+        try{
+            if(permissionResponse.status === 'undetermined'){
+                await requestPermission();
+            }
+            else if(permissionResponse.status === 'denied'){
+                console.log('Pemissão negada, indo para configuração do aplicativo');
+                Alert.alert('Conceda as permissões necessárias')
+                Linking.openSettings();
+            }
+            
+        
+            const fetchedSongs = await MediaLibrary.getAssetsAsync({
+                mediaType: 'audio',
+                first: 100,
+                sortBy: ['duration']
+                
+
+            });
+            setSong(fetchedSongs.assets); 
         }
-        const fetchedSongs = await MediaLibrary.getAssetsAsync({
-            mediaType: 'audio',
-            first: 50
-        });
-        setSong(fetchedSongs.assets); 
+        catch(error){
+            console.log("Error:",error);
+            
+        }
     }
 
     
@@ -24,7 +40,7 @@ export default function LayoutHome(){
        <SafeAreaView style={Styles.container}>
         <Button onPress={getAudio} title="Get Song"/>
         <ScrollView>
-            {songs && songs.map((audio) => <SongEntry audio={audio}/>)}
+            {songs && songs.map((audio) => <SongEntry key={audio.id} audio={audio}/>)}
         </ScrollView>
        </SafeAreaView>
     )
@@ -35,7 +51,9 @@ function SongEntry({audio}){
 
     useEffect(() =>{
         async function getSongAssets() {
-            const songAssets = await MediaLibrary.getAssetsAsync({audio});
+            const songAssets = await MediaLibrary.getAssetsAsync({
+                mediaType:'audio'
+            });
             setAssets(songAssets.assets);     
         }
         getSongAssets();
@@ -44,7 +62,7 @@ function SongEntry({audio}){
     return (
         <View key={audio.id} style={Styles.songContainer}>
           <Text style={Styles.text}>
-            {audio.filename} - {audio.assetCount ?? 'no'} assets
+            {audio.filename} - {audio.duration}
           </Text>
         </View>
     );
@@ -68,10 +86,6 @@ const Styles = StyleSheet.create(
             borderColor: '#ccc',
             borderRadius: 5,
         
-        },
-        songAssetsContainer: {
-            flexDirection: 'row',
-            flexWrap: 'wrap',
         },
     }
 )

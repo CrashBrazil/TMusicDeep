@@ -3,13 +3,12 @@ import { Button, Text, SafeAreaView, ScrollView, StyleSheet, Image, View, Platfo
 import * as MediaLibrary from 'expo-media-library';
 
 export default function App() {
-    <></>
+    return (
+        <>
+        </>
     
-  
+      );
     
-  
-  
- 
 
 }
 
