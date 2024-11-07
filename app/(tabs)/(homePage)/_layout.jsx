@@ -1,30 +1,41 @@
-import { useEffect, useState } from "react";
-import { View, StyleSheet, ScrollView, Button, Text, Linking, Alert} from "react-native";
+import React from "react";
+import { useCallback, useEffect, useState} from "react";
+import { View, StyleSheet, ScrollView, Text, Linking, Alert,RefreshControl} from "react-native";
 import * as MediaLibrary from 'expo-media-library';
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function LayoutHome(){
     const[songs, setSong] = useState(null);
+    const[refreshing,setRefreshing] = useState(false);
     const [permissionResponse, requestPermission] = MediaLibrary.usePermissions();
+    useEffect(() => {
+        
 
+    })
+    
     async function getAudio() {
         try{
+            setRefreshing(true);
+            setTimeout(() =>{
+                setRefreshing(false);
+            },300);
             if(permissionResponse.status === 'undetermined'){
                 await requestPermission();
             }
-            else if(permissionResponse.status === 'denied'){
-                console.log('Pemissão negada, indo para configuração do aplicativo');
+            else if(permissionResponse.status === "denied"){
+                console.log('Pemissão não concedida, indo para configuração do aplicativo');
                 Alert.alert('Conceda as permissões necessárias')
                 Linking.openSettings();
             }
-            
-        
+            else if(permissionResponse.status ==='granted'){
+                console.log("Permitido");
+            }
+    
             const fetchedSongs = await MediaLibrary.getAssetsAsync({
                 mediaType: 'audio',
                 first: 100,
                 sortBy: ['duration']
                 
-
             });
             setSong(fetchedSongs.assets); 
         }
@@ -33,14 +44,13 @@ export default function LayoutHome(){
             
         }
     }
-
     
 
     return(
        <SafeAreaView style={Styles.container}>
-        <Button onPress={getAudio} title="Get Song"/>
-        <ScrollView>
+        <ScrollView refreshControl={<RefreshControl refreshing={refreshing} onRefresh={getAudio}/>}> 
             {songs && songs.map((audio) => <SongEntry key={audio.id} audio={audio}/>)}
+            <Text>Nenhuma Musica Disponivel</Text>
         </ScrollView>
        </SafeAreaView>
     )
@@ -87,5 +97,6 @@ const Styles = StyleSheet.create(
             borderRadius: 5,
         
         },
+        
     }
 )
