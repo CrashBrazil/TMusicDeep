@@ -1,11 +1,13 @@
 import React from "react";
-import { useCallback, useEffect, useState} from "react";
-import { View, StyleSheet, ScrollView, Text, Linking, Alert,RefreshControl} from "react-native";
+import { useEffect, useState} from "react";
+import { View, StyleSheet, ScrollView, Text, Linking, Alert,RefreshControl, TouchableWithoutFeedback} from "react-native";
 import * as MediaLibrary from 'expo-media-library';
 import { SafeAreaView } from "react-native-safe-area-context";
+import {Audio} from 'expo-av';
 
 export default function LayoutHome(){
     const[songs, setSong] = useState(null);
+    const[musicLimit, setmusicLimit] = useState(0)
     const[refreshing,setRefreshing] = useState(false);
     const [permissionResponse, requestPermission] = MediaLibrary.usePermissions();
     useEffect(() => {
@@ -55,7 +57,6 @@ export default function LayoutHome(){
        </SafeAreaView>
     )
 }
-
 function SongEntry({audio}){
     const [assets, setAssets] = useState([]);
 
@@ -69,13 +70,22 @@ function SongEntry({audio}){
         getSongAssets();
     },[audio])
 
+   
     return (
         <View key={audio.id} style={Styles.songContainer}>
-          <Text style={Styles.text}>
-            {audio.filename} - {audio.duration}
-          </Text>
+            <TouchableWithoutFeedback onPress={() =>{PlyBlackBlack(audio)}}>
+                <Text style={Styles.text}>
+                    {audio.filename} - {audio.duration}
+                </Text>
+          </TouchableWithoutFeedback>
         </View>
     );
+}
+function PlyBlackBlack(audio) {
+    const playback = new Audio.Sound();
+    playback.loadAsync({uri: audio.uri}, {shouldPlay: true})
+    console.log(audio.filename);
+      
 }
 
 const Styles = StyleSheet.create(
